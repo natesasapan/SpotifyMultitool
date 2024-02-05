@@ -65,6 +65,22 @@ def get_songs_from_playlist(token, playlist_id):
     headers = get_auth_header(token)
     result = get(url, headers=headers)
     json_result = json.loads(result.content)["items"]
-    return json_result
+    song_total = json.loads(result.content)["total"]
+    return json_result, song_total
+
+def print_songs(playlist_json):
+    print("Songs in the Playlist:")
+    for index, song in enumerate(playlist_json, start=1):
+        track_name = song["track"]["name"]
+        artist_name = song["track"]["album"]["artists"][0]["name"]
+    
+        print(f"{index}. {track_name} by {artist_name}")
+
+
+playlist_id = "37i9dQZF1DWXRqgorJj26U"
 
 token = get_token()
+playlist, total_songs = get_songs_from_playlist(token, playlist_id)
+print("Number of Songs:", total_songs)
+print("\n")
+print_songs(playlist)
