@@ -16,3 +16,6 @@ This Python script provides a basic implementation for interacting with the Spot
   3. Install the required dependencies using pip install -r requirements.txt
   4. Set up your Spotify API credentials and redirect URI in a .env file
   5. Run the script and explore the functionalities
+
+
+** This tool is still in development. It is expected to be finished by 3/1/2024.
