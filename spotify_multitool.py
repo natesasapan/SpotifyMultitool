@@ -3,12 +3,16 @@ from dotenv import load_dotenv
 import base64
 from requests import post,get
 import json
+from openpyxl import Workbook
 
 load_dotenv()
 
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 redirect_uri = os.getenv("URI_REDIR")
+
+workbook = Workbook()
+sheet = workbook.active
 
 conf = (client_id, client_secret, redirect_uri)
 
@@ -68,7 +72,7 @@ def get_songs_from_playlist(token, playlist_id, offset):
     song_total = json.loads(result.content)["total"]
     return json_result, song_total
 
-def print_songs(playlist_json, offset):
+def print_songs(playlist_json, offset, workbook, sheet):
 
     for index, song in enumerate(playlist_json, start=1):
         track_name = song["track"]["name"]
@@ -77,8 +81,16 @@ def print_songs(playlist_json, offset):
             artist_name = song["track"]["album"]["artists"][0]["name"]
         else:
             artist_name = "Unknown Artist"
+
+        currentNum = index + offset
+        sheetA = ("A%s") %currentNum
+        sheetB = ("B%s") %currentNum
+        sheet[sheetA] = track_name
+        sheet[sheetB] = artist_name        
     
-        print(f"{index + offset}. {track_name} by {artist_name}")
+        print(f"{currentNum}. {track_name} by {artist_name}")
+
+        workbook.save(filename="songtest.xlsx")
 
 def parse_input():
     print("Please enter the link to the playlist you'd like to copy: ")
@@ -102,5 +114,5 @@ playlist, total_songs = get_songs_from_playlist(token, playlist_id, 0)
 print("All songs: ")
 while (counter < total_songs):
     playlist, total_songs = get_songs_from_playlist(token, playlist_id, counter)
-    print_songs(playlist, counter)
+    print_songs(playlist, counter, workbook, sheet)
     counter = counter + 50
