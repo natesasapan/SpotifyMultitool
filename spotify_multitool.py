@@ -3,16 +3,14 @@ from dotenv import load_dotenv
 import base64
 from requests import post,get
 import json
+import requests
+from PIL import Image
+import io
 
 load_dotenv()
 
-client_id = os.getenv("CLIENT_ID")
-client_secret = os.getenv("CLIENT_SECRET")
-redirect_uri = os.getenv("URI_REDIR")
 
-conf = (client_id, client_secret, redirect_uri)
-
-def get_token():
+def get_token(client_id, client_secret):
     auth_string = client_id + ":" + client_secret
     auth_bytes = auth_string.encode("utf-8")
     auth_base64 = str(base64.b64encode(auth_bytes), "utf-8")
@@ -61,28 +59,42 @@ def get_user_playlists(token, user_id):
     return json_result
 
 def get_songs_from_playlist(token, playlist_id, offset):
-    url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks??market=US&fields=fields%3Ditems%28added_by.id%2Ctrack%28name%2Chref%2Calbum%28name%2Chref%29%29%29&limit=50&offset={offset}"
+    url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?market=US&fields=total%2Citems%28track%28album%28name%2Cimages%28url%29%29%2Cartists%28name%29%2Cname%29%29&limit=50&offset={offset}"
+    #url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?market=US&fields=total%2Citems%28track%28album%28name%29%2Cartists%28name%29%2Cname%29%29&limit=50&offset={offset}"
     headers = get_auth_header(token)
     result = get(url, headers=headers)
     json_result = json.loads(result.content)["items"]
     song_total = json.loads(result.content)["total"]
     return json_result, song_total
 
-def print_songs(playlist_json, offset):
+
+def get_playlist_name(token, playlist_id):
+    url = f"https://api.spotify.com/v1/playlists/{playlist_id}?market=US&fields=name"
+    headers = get_auth_header(token)
+    result = get(url, headers=headers)
+    json_result = json.loads(result.content)["name"]
+    return json_result
+
+def print_songs(playlist_json, offset, workbook, sheet, playlist_name):
 
     for index, song in enumerate(playlist_json, start=1):
         track_name = song["track"]["name"]
-        #artist_name = song["track"]["album"]["artists"][0]["name"]
-        if "artists" in song["track"]["album"] and song["track"]["album"]["artists"]:
-            artist_name = song["track"]["album"]["artists"][0]["name"]
-        else:
+        artist_name = song["track"]["artists"][0]["name"]
+        if artist_name == "":
             artist_name = "Unknown Artist"
-    
-        print(f"{index + offset}. {track_name} by {artist_name}")
 
-def parse_input():
-    print("Please enter the link to the playlist you'd like to copy: ")
-    url = input()
+        currentNum = index + offset
+        sheetA = ("A%s") %currentNum
+        sheetB = ("B%s") %currentNum
+        sheet[sheetA] = track_name
+        sheet[sheetB] = artist_name        
+    
+        print(f"{currentNum}. {track_name} by {artist_name}")
+
+        workbook.save(filename=f"{playlist_name}.xlsx")
+
+def parse_input(playlist_id):
+    url = playlist_id
 
     start_index = url.find("playlist/") + len("playlist/")
     end_index = url.find("?", start_index) if "?" in url else len(url)
@@ -90,17 +102,6 @@ def parse_input():
     playlist_id = url[start_index:end_index]
     return playlist_id
 
-#playlist_id = "130r8tmjyMRtQt1FRk765o"
-
-token = get_token()
-
-playlist_id = parse_input()
-
-counter = 0
-playlist, total_songs = get_songs_from_playlist(token, playlist_id, 0)
-
-print("All songs: ")
-while (counter < total_songs):
-    playlist, total_songs = get_songs_from_playlist(token, playlist_id, counter)
-    print_songs(playlist, counter)
-    counter = counter + 50
+def fetch_album_cover(url):
+    response = requests.get(url)
+    return Image.open(io.BytesIO(response.content))
