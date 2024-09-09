@@ -89,8 +89,6 @@ def print_songs(playlist_json, offset, workbook, sheet, playlist_name):
         sheet[sheetA] = track_name
         sheet[sheetB] = artist_name        
     
-        print(f"{currentNum}. {track_name} by {artist_name}")
-
         workbook.save(filename=f"{playlist_name}.xlsx")
 
 def parse_input(playlist_id):
