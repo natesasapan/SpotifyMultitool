@@ -60,12 +60,18 @@ def get_user_playlists(token, user_id):
 
 def get_songs_from_playlist(token, playlist_id, offset):
     url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?market=US&fields=total%2Citems%28track%28album%28name%2Cimages%28url%29%29%2Cartists%28name%29%2Cname%29%29&limit=50&offset={offset}"
-    #url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?market=US&fields=total%2Citems%28track%28album%28name%29%2Cartists%28name%29%2Cname%29%29&limit=50&offset={offset}"
     headers = get_auth_header(token)
     result = get(url, headers=headers)
     json_result = json.loads(result.content)["items"]
     song_total = json.loads(result.content)["total"]
     return json_result, song_total
+
+def get_images_from_playlist(token, playlist_id, offset):
+    url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?market=US&fields=total%2Citems%28track%28album%28name%2Cimages%28url%29%29%2Cartists%28name%29%2Cname%29%29&limit=50&offset={offset}"
+    headers = get_auth_header(token)
+    result = get(url, headers=headers)
+    img_result = json.loads(result.content)["items"]
+    return img_result
 
 
 def get_playlist_name(token, playlist_id):
@@ -89,8 +95,6 @@ def print_songs(playlist_json, offset, workbook, sheet, playlist_name):
         sheet[sheetA] = track_name
         sheet[sheetB] = artist_name        
     
-        print(f"{currentNum}. {track_name} by {artist_name}")
-
         workbook.save(filename=f"{playlist_name}.xlsx")
 
 def parse_input(playlist_id):
