@@ -4,7 +4,7 @@ This Python script provides a basic implementation for interacting with the Spot
 ## Functionalities: 
 
   - Obtain an access token using client credentials 🪙
-  - Search for an playlist on Spotify 🎤
+  - Search for a playlist on Spotify 🎤
   - Retrieve all songs from the entered playlist 🎵
   - Export all songs and artist names to an excel file 📈
 
